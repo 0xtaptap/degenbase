@@ -171,8 +171,8 @@ async def get_whale_transfers():
                 except (ValueError, TypeError):
                     val = 0.0
 
-            # Only include transfers > 50K DEGEN (lower threshold for more activity)
-            if val >= 50000:
+            # Only include transfers > 10K DEGEN
+            if val >= 10000:
                 whales.append({
                     "from": _shorten_address(t.get("from", "")),
                     "to": _shorten_address(t.get("to", "")),
@@ -182,7 +182,7 @@ async def get_whale_transfers():
                     "value_formatted": _format_number(val),
                     "hash": t.get("hash", ""),
                     "timestamp": t.get("metadata", {}).get("blockTimestamp", ""),
-                    "size": "whale" if val >= 1_000_000 else "shark" if val >= 500_000 else "dolphin"
+                    "size": "whale" if val >= 500_000 else "shark" if val >= 100_000 else "dolphin"
                 })
 
         return {"whales": whales[:20], "total": len(whales), "token": "DEGEN", "chain": "Base"}
