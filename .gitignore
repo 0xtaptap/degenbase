@@ -1,6 +1,4 @@
 __pycache__/
 *.pyc
 .env
-data/twitter_cookies.json
-data/twitter_cache.json
 .vscode/

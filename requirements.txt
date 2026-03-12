@@ -1,5 +1,5 @@
 fastapi
 uvicorn[standard]
 httpx
-twikit
+twikit @ git+https://github.com/d60/twikit.git
 python-dotenv
