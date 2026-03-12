@@ -18,7 +18,23 @@ document.addEventListener('DOMContentLoaded', () => {
     initTabs();
     loadDreams();
     loadNetworkActivity();
+    generateSparkles();
 });
+
+// === Sparkle Generator ===
+function generateSparkles() {
+    const field = document.getElementById('sparkleField');
+    if (!field) return;
+    for (let i = 0; i < 30; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'sparkle';
+        dot.style.left = Math.random() * 100 + '%';
+        dot.style.top = Math.random() * 100 + '%';
+        dot.style.animationDelay = (Math.random() * 5) + 's';
+        dot.style.animationDuration = (2 + Math.random() * 4) + 's';
+        field.appendChild(dot);
+    }
+}
 
 // === Tab Navigation ===
 function initTabs() {
@@ -165,8 +181,9 @@ async function upvoteDream(dreamId, btn) {
         if (data.success) {
             const countSpan = btn.querySelector('span');
             countSpan.textContent = data.upvotes;
-            btn.style.borderColor = 'var(--purple-mid)';
-            btn.style.color = 'var(--purple-light)';
+            btn.style.background = 'var(--purple-500)';
+            btn.style.borderColor = 'var(--purple-500)';
+            btn.style.color = 'white';
 
             // Quick pulse animation
             btn.style.transform = 'scale(1.2)';
@@ -413,9 +430,9 @@ function escapeHtml(text) {
 
 function highlightDegenMentions(text) {
     return text
-        .replace(/(\$DEGEN)/gi, '<span style="color: var(--purple-light); font-weight: 600;">$1</span>')
-        .replace(/(#DEGEN)/gi, '<span style="color: var(--purple-light); font-weight: 600;">$1</span>')
-        .replace(/(@\w+)/g, '<span style="color: var(--accent-cyan);">$1</span>');
+        .replace(/(\$DEGEN)/gi, '<span style="color: var(--purple-600); font-weight: 700;">$1</span>')
+        .replace(/(#DEGEN)/gi, '<span style="color: var(--purple-600); font-weight: 700;">$1</span>')
+        .replace(/(@\w+)/g, '<span style="color: var(--purple-500); font-weight: 600;">$1</span>');
 }
 
 function getTimeAgo(timestamp) {
