@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Degen Dream Hub — Community dream board, on-chain DEGEN dashboard, and live Twitter pulse. Built for degens, by degens.">
+    <title>Degen Dream Hub 🎩</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎩</text></svg>">
+</head>
+<body>
+
+    <!-- Header -->
+    <header class="header">
+        <div class="header-brand">
+            <span class="header-hat">🎩</span>
+            <div>
+                <div class="header-title">DEGEN DREAM HUB</div>
+                <div class="header-subtitle">Built for Degens · Base Chain</div>
+            </div>
+        </div>
+        <div class="header-badge">
+            <span class="dot"></span>
+            <span>Live on Base</span>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-tabs" id="navTabs">
+        <button class="nav-tab active" data-tab="dreams" id="tab-dreams">
+            <span class="tab-icon">💭</span>
+            Dream Board
+            <span class="tab-count" id="dreams-count">0</span>
+        </button>
+        <button class="nav-tab" data-tab="dashboard" id="tab-dashboard">
+            <span class="tab-icon">⛓️</span>
+            On-Chain Dashboard
+        </button>
+        <button class="nav-tab" data-tab="twitter" id="tab-twitter">
+            <span class="tab-icon">📡</span>
+            Twitter Pulse
+        </button>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- ===== TAB 1: DREAM BOARD ===== -->
+        <section class="tab-panel active" id="panel-dreams">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">
+                        <span class="title-icon">💭</span>
+                        Dream Board
+                    </h1>
+                    <p class="section-desc">Share your degen dreams. What are you building? What's your vision?</p>
+                </div>
+            </div>
+
+            <!-- Submit Form -->
+            <div class="dream-submit-form" id="dreamForm">
+                <div class="form-row">
+                    <textarea class="form-input" id="dreamText" placeholder="Share your DEGEN dream... What are you building? What's your vision for the future? 🎩" rows="3"></textarea>
+                </div>
+                <div class="form-row">
+                    <input type="text" class="form-input" id="dreamImage" placeholder="Image URL (optional)">
+                    <input type="text" class="form-input wallet-input" id="dreamWallet" placeholder="0x... wallet (optional — shows DEGEN balance)">
+                    <button class="btn-submit" id="btnSubmitDream" onclick="submitDream()">
+                        🎩 Drop Dream
+                    </button>
+                </div>
+            </div>
+
+            <!-- Dream Grid -->
+            <div class="dream-grid" id="dreamGrid">
+                <div class="loading-spinner" id="dreamsLoading">
+                    <div class="spinner"></div>
+                    <span class="loading-text">Loading dreams...</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== TAB 2: ON-CHAIN DASHBOARD ===== -->
+        <section class="tab-panel" id="panel-dashboard">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">
+                        <span class="title-icon">⛓️</span>
+                        DEGEN On-Chain Dashboard
+                    </h1>
+                    <p class="section-desc">Look up any wallet's DEGEN balance and transfer history on Base chain</p>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="dashboard-search">
+                <input type="text" class="wallet-search-input" id="walletSearch" placeholder="Enter wallet address (0x...)">
+                <button class="btn-search" id="btnSearch" onclick="searchWallet()">
+                    🔍 Look Up
+                </button>
+            </div>
+
+            <!-- Balance Card (hidden by default) -->
+            <div id="dashboardResults" style="display:none;">
+                <div class="balance-card" id="balanceCard">
+                    <div class="balance-label">DEGEN Balance</div>
+                    <div class="balance-value" id="balanceValue">0</div>
+                    <div class="balance-usd" id="balanceRaw"></div>
+                    <div class="balance-wallet" id="balanceWallet"></div>
+                </div>
+
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card">
+                        <div class="stat-value" id="statReceived">0</div>
+                        <div class="stat-label">Transfers Received</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statSent">0</div>
+                        <div class="stat-label">Transfers Sent</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="statTotal">0</div>
+                        <div class="stat-label">Total Transfers</div>
+                    </div>
+                </div>
+
+                <h3 style="font-family: var(--font-display); margin-bottom: 16px; color: var(--text-primary);">
+                    📜 Recent Transfers
+                </h3>
+                <div class="transfer-list" id="transferList"></div>
+            </div>
+
+            <!-- Dashboard Loading -->
+            <div class="loading-spinner" id="dashboardLoading" style="display:none;">
+                <div class="spinner"></div>
+                <span class="loading-text">Fetching on-chain data from Base...</span>
+            </div>
+
+            <!-- Empty State -->
+            <div class="empty-state" id="dashboardEmpty">
+                <div class="empty-icon">🔗</div>
+                <div class="empty-title">Enter a Wallet Address</div>
+                <div class="empty-desc">Look up any wallet to see their DEGEN token balance and transfer history on Base chain. Powered by Alchemy.</div>
+            </div>
+
+            <!-- Recent Network Activity -->
+            <div style="margin-top: 40px;">
+                <h3 style="font-family: var(--font-display); margin-bottom: 16px; color: var(--text-primary); display:flex; align-items:center; gap:8px;">
+                    ⚡ Live Network Activity
+                </h3>
+                <div class="transfer-list" id="activityList">
+                    <div class="loading-spinner" id="activityLoading">
+                        <div class="spinner"></div>
+                        <span class="loading-text">Loading network activity...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== TAB 3: TWITTER PULSE ===== -->
+        <section class="tab-panel" id="panel-twitter">
+            <div class="section-header">
+                <div>
+                    <h1 class="section-title">
+                        <span class="title-icon">📡</span>
+                        Twitter Pulse
+                    </h1>
+                    <p class="section-desc">Live DEGEN community buzz and team updates from X</p>
+                </div>
+            </div>
+
+            <div class="twitter-layout">
+                <!-- Community Pulse -->
+                <div>
+                    <div class="twitter-section-title">
+                        🌐 Community Pulse
+                    </div>
+                    <div class="tweet-list" id="pulseList">
+                        <div class="loading-spinner" id="pulseLoading">
+                            <div class="spinner"></div>
+                            <span class="loading-text">Loading community tweets...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Feed -->
+                <div>
+                    <div class="twitter-section-title">
+                        👑 Team & Collab Updates
+                    </div>
+                    <div class="activity-panel">
+                        <div class="tweet-list" id="teamList">
+                            <div class="loading-spinner" id="teamLoading">
+                                <div class="spinner"></div>
+                                <span class="loading-text">Loading team tweets...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
