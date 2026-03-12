@@ -331,6 +331,10 @@ async function loadPulse() {
         state.pulseLoaded = true;
 
         const tweets = data.tweets || [];
+        // Update pulse counter
+        const pulseCountEl = document.getElementById('pulseCount');
+        if (pulseCountEl) pulseCountEl.textContent = tweets.length;
+
         if (tweets.length === 0) {
             list.innerHTML = `
                 <div class="empty-state">
@@ -341,7 +345,9 @@ async function loadPulse() {
             return;
         }
 
-        list.innerHTML = tweets.map((t, i) => renderTweetCard(t, i, false)).join('');
+        // Find max engagement for relative bar sizing
+        const maxEngagement = Math.max(1, ...tweets.map(t => (t.like_count || 0) + (t.retweet_count || 0)));
+        list.innerHTML = tweets.map((t, i) => renderTweetCard(t, i, false, maxEngagement)).join('');
 
     } catch (err) {
         list.innerHTML = `
@@ -362,17 +368,22 @@ async function loadTeamTweets() {
         state.teamLoaded = true;
 
         const tweets = data.tweets || [];
+        // Update team counter
+        const teamCountEl = document.getElementById('teamCount');
+        if (teamCountEl) teamCountEl.textContent = tweets.length;
+
         if (tweets.length === 0) {
             list.innerHTML = `
                 <div class="empty-state">
                     <div class="empty-icon">👑</div>
                     <div class="empty-title">Team Feed Empty</div>
-                    <div class="empty-desc">Add Twitter credentials to see @degentokenbase and @BR4ted tweets.</div>
+                    <div class="empty-desc">Configure DEGEN_TEAM_ACCOUNTS in .env to track team tweets.</div>
                 </div>`;
             return;
         }
 
-        list.innerHTML = tweets.map((t, i) => renderTweetCard(t, i, true)).join('');
+        const maxEngagement = Math.max(1, ...tweets.map(t => (t.like_count || 0) + (t.retweet_count || 0)));
+        list.innerHTML = tweets.map((t, i) => renderTweetCard(t, i, true, maxEngagement)).join('');
 
     } catch (err) {
         list.innerHTML = `
@@ -384,15 +395,21 @@ async function loadTeamTweets() {
     }
 }
 
-function renderTweetCard(tweet, index, isTeam) {
+function renderTweetCard(tweet, index, isTeam, maxEngagement = 100) {
     const avatarHtml = tweet.profile_image
         ? `<img src="${escapeHtml(tweet.profile_image)}" class="tweet-avatar" alt="${escapeHtml(tweet.username)}" onerror="this.outerHTML='<div class=\\'tweet-avatar-placeholder\\'>🎩</div>'">`
         : `<div class="tweet-avatar-placeholder">🎩</div>`;
 
     const teamClass = isTeam || tweet.team_member ? 'team-tweet' : '';
     const timeAgo = getTimeAgo(tweet.created_at);
-
     const tweetUrl = tweet.url ? `onclick="window.open('${escapeHtml(tweet.url)}', '_blank')" style="cursor:pointer"` : '';
+
+    // Engagement bar
+    const engagement = (tweet.like_count || 0) + (tweet.retweet_count || 0);
+    const engagementPct = Math.min(100, Math.round((engagement / maxEngagement) * 100));
+    const engagementBar = engagement > 0
+        ? `<div class="tweet-engagement"><div class="tweet-engagement-fill" style="width:${engagementPct}%"></div></div>`
+        : '';
 
     return `
         <div class="tweet-card ${teamClass}" style="animation-delay: ${index * 0.06}s" ${tweetUrl}>
@@ -410,6 +427,7 @@ function renderTweetCard(tweet, index, isTeam) {
                 <span class="tweet-stat">🔄 ${tweet.retweet_count || 0}</span>
                 <span class="tweet-stat">❤️ ${tweet.like_count || 0}</span>
             </div>
+            ${engagementBar}
         </div>`;
 }
 

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DEGEN Command Center — Live whale tracking, token analytics, wallet X-ray, and Twitter pulse. Built for degens on Base.">
     <title>DEGEN Command Center 🎩</title>
-    <link rel="stylesheet" href="/static/style.css?v=3">
+    <link rel="stylesheet" href="/static/style.css?v=4">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎩</text></svg>">
 </head>
 <body>
@@ -226,41 +226,54 @@
 
         <!-- ===== TAB 3: TWITTER PULSE ===== -->
         <section class="tab-panel" id="panel-twitter">
-            <div class="section-header">
-                <div>
-                    <h1 class="section-title">
-                        <span class="title-icon">📡</span>
-                        Twitter Pulse
+
+            <!-- Pulse Header with live counter -->
+            <div class="pulse-hero">
+                <div class="pulse-hero-left">
+                    <h1 class="pulse-hero-title">
+                        <span class="pulse-dot"></span>
+                        CT Pulse
                     </h1>
-                    <p class="section-desc">Live DEGEN community buzz and team updates from X</p>
+                    <p class="pulse-hero-desc">Real-time DEGEN buzz from Crypto Twitter</p>
+                </div>
+                <div class="pulse-hero-stats">
+                    <div class="pulse-stat-mini">
+                        <span class="pulse-stat-num" id="pulseCount">0</span>
+                        <span class="pulse-stat-label">Tweets</span>
+                    </div>
+                    <div class="pulse-stat-mini">
+                        <span class="pulse-stat-num" id="teamCount">0</span>
+                        <span class="pulse-stat-label">Team</span>
+                    </div>
                 </div>
             </div>
 
             <div class="twitter-layout">
                 <!-- Community Pulse -->
-                <div>
-                    <div class="twitter-section-title">
-                        🌐 Community Pulse
+                <div class="twitter-column">
+                    <div class="twitter-column-header">
+                        <span class="twitter-column-icon">🌐</span>
+                        <span>Community Buzz</span>
+                        <span class="twitter-column-badge" id="pulseLiveBadge">LIVE</span>
                     </div>
                     <div class="tweet-list" id="pulseList">
                         <div class="loading-spinner" id="pulseLoading">
                             <div class="spinner"></div>
-                            <span class="loading-text">Loading community tweets...</span>
+                            <span class="loading-text">Scanning CT for DEGEN...</span>
                         </div>
                     </div>
                 </div>
 
                 <!-- Team Feed -->
-                <div>
-                    <div class="twitter-section-title">
-                        👑 Team & Collab Updates
+                <div class="twitter-column">
+                    <div class="twitter-column-header">
+                        <span class="twitter-column-icon">👑</span>
+                        <span>Official & Team</span>
                     </div>
-                    <div class="activity-panel">
-                        <div class="tweet-list" id="teamList">
-                            <div class="loading-spinner" id="teamLoading">
-                                <div class="spinner"></div>
-                                <span class="loading-text">Loading team tweets...</span>
-                            </div>
+                    <div class="tweet-list" id="teamList">
+                        <div class="loading-spinner" id="teamLoading">
+                            <div class="spinner"></div>
+                            <span class="loading-text">Loading team updates...</span>
                         </div>
                     </div>
                 </div>
@@ -271,6 +284,6 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="/static/app.js?v=3"></script>
+    <script src="/static/app.js?v=4"></script>
 </body>
 </html>

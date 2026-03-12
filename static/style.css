@@ -1408,3 +1408,342 @@ textarea.form-input {
     font-size: 13px;
     color: var(--text-on-card-muted);
 }
+
+/* ============================================
+   CT PULSE PREMIUM STYLES
+   ============================================ */
+
+/* === Pulse Hero Header === */
+.pulse-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 28px;
+    background: var(--surface-glass-strong);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: var(--radius-xl);
+    backdrop-filter: blur(16px);
+    margin-bottom: 24px;
+}
+
+.pulse-hero-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 900;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #4ADE80;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.6);
+    animation: pulseDot 1.5s ease-in-out infinite;
+}
+
+@keyframes pulseDot {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.3); opacity: 0.7; }
+}
+
+.pulse-hero-desc {
+    color: var(--text-on-purple-muted);
+    font-size: 14px;
+    margin-top: 4px;
+}
+
+.pulse-hero-stats {
+    display: flex;
+    gap: 20px;
+}
+
+.pulse-stat-mini {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.pulse-stat-num {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 800;
+    color: white;
+}
+
+.pulse-stat-label {
+    font-size: 11px;
+    color: var(--text-on-purple-muted);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+}
+
+/* === Twitter Column Layout === */
+.twitter-layout {
+    display: grid;
+    grid-template-columns: 1fr 420px;
+    gap: 20px;
+}
+
+@media (max-width: 900px) {
+    .twitter-layout { grid-template-columns: 1fr; }
+    .pulse-hero { flex-direction: column; gap: 16px; text-align: center; }
+    .pulse-hero-stats { justify-content: center; }
+}
+
+.twitter-column {
+    min-width: 0;
+}
+
+.twitter-column-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: var(--surface-glass);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    backdrop-filter: blur(8px);
+    font-family: var(--font-display);
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+
+.twitter-column-icon {
+    font-size: 18px;
+}
+
+.twitter-column-badge {
+    margin-left: auto;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 3px 10px;
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ADE80;
+    border-radius: var(--radius-pill);
+    letter-spacing: 1.5px;
+    animation: livePulse 2s ease-in-out infinite;
+}
+
+.tweet-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    background: var(--surface-primary);
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+/* === Redesigned Tweet Card === */
+.tweet-card {
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--purple-100);
+    transition: all 0.3s var(--ease-out);
+    animation: tweetSlide 0.4s var(--ease-spring) both;
+    position: relative;
+    background: transparent;
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.tweet-card:last-child {
+    border-bottom: none;
+}
+
+.tweet-card:hover {
+    background: var(--purple-50);
+}
+
+.tweet-card.team-tweet {
+    border-left: 4px solid var(--purple-500);
+    background: linear-gradient(135deg, rgba(139,92,246,0.04), transparent);
+}
+
+.tweet-card.team-tweet:hover {
+    background: linear-gradient(135deg, rgba(139,92,246,0.08), var(--purple-50));
+}
+
+@keyframes tweetSlide {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.tweet-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.tweet-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--purple-200);
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.tweet-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--purple-400), var(--purple-600));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: white;
+    flex-shrink: 0;
+}
+
+.tweet-user-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.tweet-display-name {
+    font-weight: 700;
+    font-size: 14px;
+    color: var(--text-on-card);
+    line-height: 1.3;
+}
+
+.tweet-username {
+    font-size: 12px;
+    color: var(--text-on-card-muted);
+}
+
+.tweet-time {
+    font-size: 11px;
+    color: var(--text-on-card-muted);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tweet-text {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--text-on-card);
+    word-break: break-word;
+}
+
+/* === Tweet Engagement Footer === */
+.tweet-footer {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-top: 10px;
+    padding-top: 8px;
+}
+
+.tweet-stat {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-on-card-muted);
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.tweet-stat:hover {
+    color: var(--purple-500);
+}
+
+/* Engagement bar */
+.tweet-engagement {
+    margin-top: 8px;
+    height: 3px;
+    border-radius: 2px;
+    background: var(--purple-100);
+    overflow: hidden;
+}
+
+.tweet-engagement-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--purple-400), var(--accent-pink));
+    transition: width 0.6s var(--ease-out);
+}
+
+/* === Global Animation Enhancements === */
+
+/* Hover glow effect for all interactive cards */
+.stat-card,
+.balance-card,
+.command-panel {
+    transition: all 0.4s var(--ease-out);
+}
+
+.stat-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg), 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.balance-card:hover {
+    box-shadow: var(--shadow-xl), 0 0 30px rgba(139, 92, 246, 0.12);
+}
+
+/* Stat pill hover */
+.stat-pill {
+    transition: all 0.3s var(--ease-out);
+}
+
+.stat-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Nav tab hover micro-animation */
+.nav-tab {
+    transition: all 0.3s var(--ease-spring);
+}
+
+.nav-tab:hover {
+    transform: translateY(-2px);
+}
+
+.nav-tab:active {
+    transform: translateY(0) scale(0.97);
+}
+
+/* Smooth number transitions */
+.stat-pill-value,
+.stat-value,
+.xray-balance,
+.pulse-stat-num {
+    transition: all 0.3s var(--ease-out);
+}
+
+/* Header shimmer on load */
+.header-title {
+    position: relative;
+    overflow: hidden;
+}
+
+.header-title::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    animation: shimmer 3s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 200%; }
+}

@@ -25,9 +25,9 @@ CACHE_FILE = DATA_DIR / "twitter_cache.json"
 COOKIES_FILE = DATA_DIR / "twitter_cookies.json"
 CACHE_TTL_SECONDS = 600  # 10 min
 
-# Team accounts to track
-TEAM_ACCOUNTS = ["degentokenbase", "BR4ted"]
-SEARCH_KEYWORDS = ["$DEGEN", "Degen Dream"]
+# Team accounts to track (configurable via .env)
+TEAM_ACCOUNTS = [x.strip() for x in os.getenv("DEGEN_TEAM_ACCOUNTS", "degentokenbase,BR4ted").split(",") if x.strip()]
+SEARCH_KEYWORDS = [x.strip() for x in os.getenv("DEGEN_SEARCH_KEYWORDS", "$DEGEN,Degen Dream,#DEGEN").split(",") if x.strip()]
 
 # Singleton client
 _client = None
