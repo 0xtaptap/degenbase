@@ -81,9 +81,10 @@ def _normalise_cookie_file():
 async def _get_client():
     """
     Initialize twikit client.
-    Pattern from working codebase:
-      1. Try login() with cookies_file (auto-loads if file exists)
-      2. If no cookies, try login() with credentials
+    Pattern from working finch codebase:
+      1. If no cookies file, write from TWITTER_COOKIES env var
+      2. Load cookies via set_cookies() (bypasses Cloudflare)
+      3. Fallback: login() with credentials
     """
     global _client, _initialized, _disabled
 
@@ -100,19 +101,30 @@ async def _get_client():
         _disabled = True
         return None
 
-    # Check if we have cookies or credentials
+    # If no cookies file, try writing from TWITTER_COOKIES env var (Railway pattern)
+    if not COOKIES_FILE.exists():
+        env_cookies = os.environ.get("TWITTER_COOKIES", "")
+        if env_cookies:
+            try:
+                DATA_DIR.mkdir(parents=True, exist_ok=True)
+                with open(COOKIES_FILE, 'w', encoding='utf-8') as f:
+                    f.write(env_cookies)
+                print("[Twitter] Wrote cookies from TWITTER_COOKIES env var")
+            except Exception as e:
+                print(f"[Twitter] Failed to write cookies from env: {e}")
+
     has_cookies = COOKIES_FILE.exists()
     has_creds = bool(TWITTER_USERNAME and TWITTER_PASSWORD)
 
     if not has_cookies and not has_creds:
-        print("[Twitter] No cookies file and no credentials — scraper disabled")
+        print("[Twitter] No cookies and no credentials — scraper disabled")
         _disabled = True
         return None
 
     try:
         client = Client('en-US')
 
-        # Step 1: Try loading cookies directly (bypasses Cloudflare login flow)
+        # Step 1: Load cookies via set_cookies() (no login flow = no Cloudflare)
         if has_cookies:
             try:
                 _normalise_cookie_file()
@@ -133,7 +145,7 @@ async def _get_client():
                 short_err = str(cookie_err)[:150]
                 print(f"[Twitter] set_cookies() failed: {short_err} — trying login()")
 
-        # Step 2: Fallback — fresh login (only if no cookies)
+        # Step 2: Fallback — login() with credentials
         if has_creds:
             try:
                 await client.login(
@@ -159,6 +171,7 @@ async def _get_client():
         print(f"[Twitter] Init failed: {short_err}")
         _disabled = True
         return None
+
 
 
 def _tweet_to_dict(tweet) -> dict | None:
