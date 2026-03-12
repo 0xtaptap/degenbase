@@ -1,22 +1,24 @@
 /**
- * Degen Dream Hub — Frontend Application
- * Handles tab navigation, API calls, rendering, and animations.
+ * DEGEN Command Center — Frontend Application
+ * Tabs: Command Center, Wallet Explorer, Twitter Pulse
  */
 
 // === State ===
 const state = {
-    currentTab: 'dreams',
-    dreams: [],
+    currentTab: 'command',
     dashboardData: null,
     pulseLoaded: false,
     teamLoaded: false,
-    activityLoaded: false
+    activityLoaded: false,
+    statsLoaded: false,
+    whalesLoaded: false
 };
 
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', () => {
     initTabs();
-    loadDreams();
+    loadTokenStats();
+    loadWhales();
     loadNetworkActivity();
     generateSparkles();
 });
@@ -44,157 +46,154 @@ function initTabs() {
             switchTab(tabName);
         });
     });
+
+    // X-Ray enter key
+    const xrayInput = document.getElementById('xrayInput');
+    if (xrayInput) {
+        xrayInput.addEventListener('keydown', e => {
+            if (e.key === 'Enter') runXray();
+        });
+    }
 }
 
 function switchTab(tabName) {
     state.currentTab = tabName;
 
-    // Update nav buttons
     document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
 
-    // Update panels
     document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
     document.getElementById(`panel-${tabName}`).classList.add('active');
 
-    // Lazy-load tab content
+    // Lazy-load
     if (tabName === 'twitter' && !state.pulseLoaded) {
         loadPulse();
         loadTeamTweets();
     }
-    if (tabName === 'dashboard' && !state.activityLoaded) {
+    if (tabName === 'explorer' && !state.activityLoaded) {
         loadNetworkActivity();
     }
 }
 
-// === Dream Board ===
-async function loadDreams() {
-    const grid = document.getElementById('dreamGrid');
-    const loading = document.getElementById('dreamsLoading');
+// === Command Center: Token Stats ===
+async function loadTokenStats() {
+    try {
+        const resp = await fetch('/api/token/stats');
+        const data = await resp.json();
+        state.statsLoaded = true;
+
+        document.getElementById('statPrice').textContent = data.price_formatted || '$0.00';
+        document.getElementById('statMcap').textContent = data.market_cap_formatted || '$0';
+        document.getElementById('statVolume').textContent = data.volume_24h_formatted || '$0';
+        document.getElementById('statLiquidity').textContent = data.liquidity_formatted || '$0';
+
+        const changeEl = document.getElementById('statChange');
+        const change = data.price_change_24h || 0;
+        changeEl.textContent = `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+        changeEl.className = `stat-pill-change ${change >= 0 ? 'positive' : 'negative'}`;
+
+    } catch (err) {
+        console.error('Token stats error:', err);
+    }
+}
+
+// === Command Center: Whale Watch ===
+async function loadWhales() {
+    const list = document.getElementById('whaleList');
 
     try {
-        const resp = await fetch('/api/dreams');
+        const resp = await fetch('/api/whales/recent');
         const data = await resp.json();
-        state.dreams = data.dreams || [];
+        state.whalesLoaded = true;
 
-        // Update count badge
-        document.getElementById('dreams-count').textContent = state.dreams.length;
-
-        loading.style.display = 'none';
-
-        if (state.dreams.length === 0) {
-            grid.innerHTML = `
-                <div class="empty-state" style="grid-column: 1 / -1;">
-                    <div class="empty-icon">🎩</div>
-                    <div class="empty-title">No Dreams Yet</div>
-                    <div class="empty-desc">Be the first to share your degen dream! What are you building? What's your vision?</div>
+        const whales = data.whales || [];
+        if (whales.length === 0) {
+            list.innerHTML = `
+                <div class="xray-empty">
+                    <div class="empty-icon">🐋</div>
+                    <div class="empty-desc">No whale activity detected. Check back soon!</div>
                 </div>`;
             return;
         }
 
-        grid.innerHTML = state.dreams.map((d, i) => renderDreamCard(d, i)).join('');
+        list.innerHTML = whales.map((w, i) => {
+            const icon = w.size === 'whale' ? '🐋' : w.size === 'shark' ? '🦈' : '🐬';
+            const sizeClass = `size-${w.size}`;
+            const timeAgo = getTimeAgo(w.timestamp);
+
+            return `
+                <div class="whale-card ${sizeClass}" style="animation-delay: ${i * 0.05}s">
+                    <span class="whale-icon">${icon}</span>
+                    <div class="whale-addresses">
+                        <div class="whale-flow">
+                            ${w.from} <span class="arrow">→</span> ${w.to}
+                        </div>
+                    </div>
+                    <div style="text-align:right">
+                        <div class="whale-amount">${w.value_formatted} DEGEN</div>
+                        <div class="whale-time">${timeAgo}</div>
+                    </div>
+                </div>`;
+        }).join('');
 
     } catch (err) {
-        loading.innerHTML = `
-            <div class="empty-state">
+        list.innerHTML = `
+            <div class="xray-empty">
                 <div class="empty-icon">⚠️</div>
-                <div class="empty-title">Connection Error</div>
-                <div class="empty-desc">Couldn't load dreams. Is the server running?</div>
+                <div class="empty-desc">Error loading whale data</div>
             </div>`;
     }
 }
 
-function renderDreamCard(dream, index) {
-    const imageHtml = dream.image_url ? `<img src="${escapeHtml(dream.image_url)}" class="dream-image" alt="Dream image" onerror="this.style.display='none'">` : '';
-    const walletDisplay = dream.wallet ? `${dream.wallet.slice(0, 6)}...${dream.wallet.slice(-4)}` : 'anon';
-    const balanceHtml = dream.degen_balance && parseFloat(dream.degen_balance) > 0
-        ? `<span class="dream-balance">🎩 ${dream.degen_balance_formatted || dream.degen_balance} DEGEN</span>`
-        : '';
-    const timeAgo = getTimeAgo(dream.timestamp);
-
-    return `
-        <div class="dream-card" style="animation-delay: ${index * 0.06}s">
-            ${imageHtml}
-            <div class="dream-text">${escapeHtml(dream.text)}</div>
-            <div class="dream-meta">
-                <div>
-                    <div class="dream-wallet">🔗 ${walletDisplay} ${balanceHtml}</div>
-                    <div class="dream-time">${timeAgo}</div>
-                </div>
-                <div class="dream-actions">
-                    <button class="btn-upvote" onclick="upvoteDream('${dream.id}', this)">
-                        🔥 <span>${dream.upvotes || 0}</span>
-                    </button>
-                </div>
-            </div>
-        </div>`;
-}
-
-async function submitDream() {
-    const text = document.getElementById('dreamText').value.trim();
-    const imageUrl = document.getElementById('dreamImage').value.trim();
-    const wallet = document.getElementById('dreamWallet').value.trim();
-
-    if (!text) {
-        showToast('Write your dream first! 🎩', 'error');
+// === Command Center: Wallet X-Ray ===
+async function runXray() {
+    const address = document.getElementById('xrayInput').value.trim();
+    if (!address.startsWith('0x') || address.length !== 42) {
+        showToast('Enter a valid wallet address (0x...)', 'error');
         return;
     }
 
-    const btn = document.getElementById('btnSubmitDream');
-    btn.disabled = true;
-    btn.innerHTML = '⏳ Dropping...';
+    const results = document.getElementById('xrayResults');
+    const loading = document.getElementById('xrayLoading');
+    const empty = document.getElementById('xrayEmpty');
+
+    results.style.display = 'none';
+    empty.style.display = 'none';
+    loading.style.display = 'flex';
 
     try {
-        const resp = await fetch('/api/dreams', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text, image_url: imageUrl || null, wallet: wallet || null })
-        });
-
+        const resp = await fetch(`/api/wallet/xray/${address}`);
         const data = await resp.json();
-        if (data.success) {
-            showToast('Dream dropped! 🎩🔥', 'success');
-            document.getElementById('dreamText').value = '';
-            document.getElementById('dreamImage').value = '';
-            document.getElementById('dreamWallet').value = '';
-            loadDreams();
+
+        document.getElementById('xrayBalance').textContent = data.balance_formatted;
+        document.getElementById('xrayUsd').textContent = data.usd_value_formatted;
+        document.getElementById('xrayAddress').textContent = data.address;
+        document.getElementById('xrayTotalTx').textContent = data.total_transfers;
+        document.getElementById('xrayReceived').textContent = data.total_received_formatted;
+        document.getElementById('xraySent').textContent = data.total_sent_formatted;
+        document.getElementById('xrayLargest').textContent = data.largest_tx.value_formatted + ' DEGEN';
+
+        // OG date
+        const ogEl = document.getElementById('xrayOg');
+        if (data.first_interaction) {
+            const firstDate = new Date(data.first_interaction);
+            ogEl.textContent = `🎩 DEGEN OG since ${firstDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`;
+            ogEl.style.display = 'block';
         } else {
-            showToast('Failed to submit dream', 'error');
+            ogEl.style.display = 'none';
         }
+
+        loading.style.display = 'none';
+        results.style.display = 'block';
+
     } catch (err) {
-        showToast('Server error — is the backend running?', 'error');
-    }
-
-    btn.disabled = false;
-    btn.innerHTML = '🎩 Drop Dream';
-}
-
-async function upvoteDream(dreamId, btn) {
-    try {
-        const resp = await fetch('/api/dreams/upvote', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ dream_id: dreamId })
-        });
-
-        const data = await resp.json();
-        if (data.success) {
-            const countSpan = btn.querySelector('span');
-            countSpan.textContent = data.upvotes;
-            btn.style.background = 'var(--purple-500)';
-            btn.style.borderColor = 'var(--purple-500)';
-            btn.style.color = 'white';
-
-            // Quick pulse animation
-            btn.style.transform = 'scale(1.2)';
-            setTimeout(() => { btn.style.transform = 'scale(1)'; }, 200);
-        }
-    } catch (err) {
-        console.error('Upvote error:', err);
+        loading.style.display = 'none';
+        empty.style.display = 'block';
+        showToast('Error scanning wallet', 'error');
     }
 }
 
-// === On-Chain Dashboard ===
+// === Wallet Explorer ===
 async function searchWallet() {
     const wallet = document.getElementById('walletSearch').value.trim();
     if (!wallet.startsWith('0x') || wallet.length !== 42) {
@@ -215,19 +214,16 @@ async function searchWallet() {
         const data = await resp.json();
         state.dashboardData = data;
 
-        // Render balance
         const balance = data.balance || {};
         document.getElementById('balanceValue').textContent = balance.balance_formatted || '0';
         document.getElementById('balanceRaw').textContent = `${(balance.balance || 0).toLocaleString()} DEGEN tokens`;
         document.getElementById('balanceWallet').textContent = wallet;
 
-        // Render stats
         const transfers = data.transfers || {};
         document.getElementById('statReceived').textContent = transfers.total_received || 0;
         document.getElementById('statSent').textContent = transfers.total_sent || 0;
         document.getElementById('statTotal').textContent = (transfers.total_received || 0) + (transfers.total_sent || 0);
 
-        // Render transfer list
         renderTransfers(transfers.transfers || []);
 
         loading.style.display = 'none';
@@ -281,7 +277,6 @@ function renderTransfers(transfers) {
 
 async function loadNetworkActivity() {
     const list = document.getElementById('activityList');
-    const loading = document.getElementById('activityLoading');
 
     try {
         const resp = await fetch('/api/onchain/activity/recent');
@@ -317,14 +312,12 @@ async function loadNetworkActivity() {
         }).join('');
 
     } catch (err) {
-        if (loading) {
-            list.innerHTML = `
-                <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
-                    <div class="empty-title">Cannot Load Activity</div>
-                    <div class="empty-desc">Check your Alchemy API key in .env</div>
-                </div>`;
-        }
+        list.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">⚠️</div>
+                <div class="empty-title">Cannot Load Activity</div>
+                <div class="empty-desc">Check your Alchemy API key in .env</div>
+            </div>`;
     }
 }
 
@@ -412,7 +405,7 @@ function renderTweetCard(tweet, index, isTeam) {
                 <div class="tweet-time">${timeAgo}</div>
             </div>
             <div class="tweet-text">${highlightDegenMentions(escapeHtml(tweet.text))}</div>
-            <div class="tweet-stats">
+            <div class="tweet-footer">
                 <span class="tweet-stat">💬 ${tweet.reply_count || 0}</span>
                 <span class="tweet-stat">🔄 ${tweet.retweet_count || 0}</span>
                 <span class="tweet-stat">❤️ ${tweet.like_count || 0}</span>
@@ -463,20 +456,22 @@ function showToast(message, type = 'info') {
     container.appendChild(toast);
 
     setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
-        toast.style.transition = 'all 0.3s ease';
+        toast.classList.add('fade-out');
         setTimeout(() => toast.remove(), 300);
     }, 3000);
 }
 
-// === Auto-refresh Twitter (every 60s when tab is active) ===
+// === Auto-refresh ===
 setInterval(() => {
+    if (state.currentTab === 'command') {
+        loadTokenStats();
+        loadWhales();
+    }
     if (state.currentTab === 'twitter' && state.pulseLoaded) {
         loadPulse();
         loadTeamTweets();
     }
-}, 60000);
+}, 30000);
 
 // === Keyboard shortcuts ===
 document.addEventListener('keydown', (e) => {

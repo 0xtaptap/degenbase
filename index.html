@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Degen Dream Hub — Community dream board, on-chain DEGEN dashboard, and live Twitter pulse. Built for degens, by degens.">
-    <title>Degen Dream Hub 🎩</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <meta name="description" content="DEGEN Command Center — Live whale tracking, token analytics, wallet X-ray, and Twitter pulse. Built for degens on Base.">
+    <title>DEGEN Command Center 🎩</title>
+    <link rel="stylesheet" href="/static/style.css?v=3">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎩</text></svg>">
 </head>
 <body>
@@ -18,8 +18,8 @@
         <div class="header-brand">
             <span class="header-hat">🎩</span>
             <div>
-                <div class="header-title">DEGEN DREAM HUB</div>
-                <div class="header-subtitle">Built for Degens · Base Chain</div>
+                <div class="header-title">DEGEN HUB</div>
+                <div class="header-subtitle">Command Center · Base Chain</div>
             </div>
         </div>
         <div class="header-badge">
@@ -30,14 +30,13 @@
 
     <!-- Navigation -->
     <nav class="nav-tabs" id="navTabs">
-        <button class="nav-tab active" data-tab="dreams" id="tab-dreams">
-            <span class="tab-icon">💭</span>
-            Dream Board
-            <span class="tab-count" id="dreams-count">0</span>
+        <button class="nav-tab active" data-tab="command" id="tab-command">
+            <span class="tab-icon">🎯</span>
+            Command Center
         </button>
-        <button class="nav-tab" data-tab="dashboard" id="tab-dashboard">
+        <button class="nav-tab" data-tab="explorer" id="tab-explorer">
             <span class="tab-icon">⛓️</span>
-            On-Chain Dashboard
+            Wallet Explorer
         </button>
         <button class="nav-tab" data-tab="twitter" id="tab-twitter">
             <span class="tab-icon">📡</span>
@@ -48,50 +47,115 @@
     <!-- Main Content -->
     <main class="main-content">
 
-        <!-- ===== TAB 1: DREAM BOARD ===== -->
-        <section class="tab-panel active" id="panel-dreams">
-            <div class="section-header">
-                <div>
-                    <h1 class="section-title">
-                        <span class="title-icon">💭</span>
-                        Dream Board
-                    </h1>
-                    <p class="section-desc">Share your degen dreams. What are you building? What's your vision?</p>
+        <!-- ===== TAB 1: COMMAND CENTER ===== -->
+        <section class="tab-panel active" id="panel-command">
+
+            <!-- Token Stats Bar -->
+            <div class="token-stats-bar" id="tokenStatsBar">
+                <div class="stat-pill">
+                    <span class="stat-pill-label">DEGEN</span>
+                    <span class="stat-pill-value" id="statPrice">$0.00</span>
+                    <span class="stat-pill-change" id="statChange">0%</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="stat-pill-label">MCap</span>
+                    <span class="stat-pill-value" id="statMcap">$0</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="stat-pill-label">24h Vol</span>
+                    <span class="stat-pill-value" id="statVolume">$0</span>
+                </div>
+                <div class="stat-pill">
+                    <span class="stat-pill-label">Liquidity</span>
+                    <span class="stat-pill-value" id="statLiquidity">$0</span>
                 </div>
             </div>
 
-            <!-- Submit Form -->
-            <div class="dream-submit-form" id="dreamForm">
-                <div class="form-row">
-                    <textarea class="form-input" id="dreamText" placeholder="Share your DEGEN dream... What are you building? What's your vision for the future? 🎩" rows="3"></textarea>
-                </div>
-                <div class="form-row">
-                    <input type="text" class="form-input" id="dreamImage" placeholder="Image URL (optional)">
-                    <input type="text" class="form-input wallet-input" id="dreamWallet" placeholder="0x... wallet (optional — shows DEGEN balance)">
-                    <button class="btn-submit" id="btnSubmitDream" onclick="submitDream()">
-                        🎩 Drop Dream
-                    </button>
-                </div>
-            </div>
+            <!-- Two Column Layout -->
+            <div class="command-layout">
 
-            <!-- Dream Grid -->
-            <div class="dream-grid" id="dreamGrid">
-                <div class="loading-spinner" id="dreamsLoading">
-                    <div class="spinner"></div>
-                    <span class="loading-text">Loading dreams...</span>
+                <!-- Left: Whale Watch -->
+                <div class="command-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">🐋 Whale Watch</h2>
+                        <span class="panel-badge live-badge">LIVE</span>
+                    </div>
+                    <div class="panel-desc">Big DEGEN transfers happening right now</div>
+                    <div class="whale-list" id="whaleList">
+                        <div class="loading-spinner" id="whaleLoading">
+                            <div class="spinner"></div>
+                            <span class="loading-text">Scanning for whales...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Wallet X-Ray -->
+                <div class="command-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">🔍 Wallet X-Ray</h2>
+                    </div>
+                    <div class="panel-desc">Check any wallet's DEGEN status</div>
+
+                    <div class="xray-search">
+                        <input type="text" class="xray-input" id="xrayInput" placeholder="Paste wallet address (0x...)">
+                        <button class="btn-xray" id="btnXray" onclick="runXray()">SCAN</button>
+                    </div>
+
+                    <!-- X-Ray Results -->
+                    <div id="xrayResults" style="display:none;">
+                        <div class="xray-hero">
+                            <div class="xray-balance-label">DEGEN BALANCE</div>
+                            <div class="xray-balance" id="xrayBalance">0</div>
+                            <div class="xray-usd" id="xrayUsd">$0.00</div>
+                            <div class="xray-address" id="xrayAddress"></div>
+                        </div>
+
+                        <div class="xray-stats-grid">
+                            <div class="xray-stat">
+                                <div class="xray-stat-value" id="xrayTotalTx">0</div>
+                                <div class="xray-stat-label">Total TXs</div>
+                            </div>
+                            <div class="xray-stat">
+                                <div class="xray-stat-value received" id="xrayReceived">0</div>
+                                <div class="xray-stat-label">Received</div>
+                            </div>
+                            <div class="xray-stat">
+                                <div class="xray-stat-value sent" id="xraySent">0</div>
+                                <div class="xray-stat-label">Sent</div>
+                            </div>
+                            <div class="xray-stat">
+                                <div class="xray-stat-value" id="xrayLargest">0</div>
+                                <div class="xray-stat-label">Largest TX</div>
+                            </div>
+                        </div>
+
+                        <div class="xray-og" id="xrayOg"></div>
+                    </div>
+
+                    <!-- X-Ray Loading -->
+                    <div class="loading-spinner" id="xrayLoading" style="display:none;">
+                        <div class="spinner"></div>
+                        <span class="loading-text">Scanning wallet...</span>
+                    </div>
+
+                    <!-- X-Ray Empty -->
+                    <div class="xray-empty" id="xrayEmpty">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-desc">Paste any wallet to see their DEGEN stats, balance, and TX history</div>
+                    </div>
                 </div>
             </div>
         </section>
 
-        <!-- ===== TAB 2: ON-CHAIN DASHBOARD ===== -->
-        <section class="tab-panel" id="panel-dashboard">
+        <!-- ===== TAB 2: WALLET EXPLORER ===== -->
+        <section class="tab-panel" id="panel-explorer">
             <div class="section-header">
                 <div>
                     <h1 class="section-title">
                         <span class="title-icon">⛓️</span>
-                        DEGEN On-Chain Dashboard
+                        Wallet Explorer
                     </h1>
-                    <p class="section-desc">Look up any wallet's DEGEN balance and transfer history on Base chain</p>
+                    <p class="section-desc">Deep dive into any wallet's DEGEN activity on Base chain</p>
                 </div>
             </div>
 
@@ -99,7 +163,7 @@
             <div class="dashboard-search">
                 <input type="text" class="wallet-search-input" id="walletSearch" placeholder="Enter wallet address (0x...)">
                 <button class="btn-search" id="btnSearch" onclick="searchWallet()">
-                    🔍 Look Up
+                    🔍 EXPLORE
                 </button>
             </div>
 
@@ -115,15 +179,15 @@
                 <div class="stats-row" id="statsRow">
                     <div class="stat-card">
                         <div class="stat-value" id="statReceived">0</div>
-                        <div class="stat-label">Transfers Received</div>
+                        <div class="stat-label">Received</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="statSent">0</div>
-                        <div class="stat-label">Transfers Sent</div>
+                        <div class="stat-label">Sent</div>
                     </div>
                     <div class="stat-card">
                         <div class="stat-value" id="statTotal">0</div>
-                        <div class="stat-label">Total Transfers</div>
+                        <div class="stat-label">Total</div>
                     </div>
                 </div>
 
@@ -207,6 +271,6 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="/static/app.js"></script>
+    <script src="/static/app.js?v=3"></script>
 </body>
 </html>
