@@ -191,6 +191,84 @@ async def get_whale_transfers():
         raise HTTPException(status_code=500, detail=f"Whale tracking error: {str(e)}")
 
 
+# Cache for leaderboard
+_leaderboard_cache = {"data": None, "timestamp": 0}
+_LEADERBOARD_CACHE_TTL = 120  # 2 min
+
+
+@app.get("/api/leaderboard")
+async def get_leaderboard():
+    """Get top DEGEN holders by analyzing recent large transfers."""
+    import time
+    now = time.time()
+
+    if _leaderboard_cache["data"] and (now - _leaderboard_cache["timestamp"]) < _LEADERBOARD_CACHE_TTL:
+        return _leaderboard_cache["data"]
+
+    try:
+        # Fetch large recent transfers to find biggest wallets
+        payload = {
+            "jsonrpc": "2.0", "id": 1,
+            "method": "alchemy_getAssetTransfers",
+            "params": [{
+                "fromBlock": "0x0",
+                "toBlock": "latest",
+                "contractAddresses": [DEGEN_CONTRACT],
+                "category": ["erc20"],
+                "order": "desc",
+                "maxCount": hex(100),
+                "withMetadata": True
+            }]
+        }
+        async with httpx.AsyncClient(timeout=15) as client:
+            resp = await client.post(BASE_URL, json=payload)
+            data = resp.json()
+
+        transfers = data.get("result", {}).get("transfers", [])
+
+        # Aggregate by receiving address to find top accumulators
+        wallet_totals = {}
+        for t in transfers:
+            to_addr = t.get("to", "")
+            if not to_addr:
+                continue
+            val = t.get("value")
+            if val is not None:
+                amount = float(val)
+            else:
+                raw = t.get("rawContract", {}).get("value", "0x0")
+                try:
+                    amount = int(raw, 16) / (10 ** DEGEN_DECIMALS)
+                except (ValueError, TypeError):
+                    amount = 0.0
+
+            if to_addr in wallet_totals:
+                wallet_totals[to_addr] += amount
+            else:
+                wallet_totals[to_addr] = amount
+
+        # Sort by total received, top 15
+        sorted_wallets = sorted(wallet_totals.items(), key=lambda x: x[1], reverse=True)[:15]
+
+        holders = []
+        for i, (addr, total) in enumerate(sorted_wallets):
+            holders.append({
+                "rank": i + 1,
+                "address": addr,
+                "address_short": _shorten_address(addr),
+                "total_received": round(total, 2),
+                "total_formatted": _format_number(total)
+            })
+
+        result = {"holders": holders, "total": len(holders), "token": "DEGEN", "chain": "Base"}
+        _leaderboard_cache["data"] = result
+        _leaderboard_cache["timestamp"] = now
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Leaderboard error: {str(e)}")
+
+
 @app.get("/api/wallet/xray/{address}")
 async def wallet_xray(address: str):
     """Enhanced wallet analysis — balance, rank estimate, stats."""

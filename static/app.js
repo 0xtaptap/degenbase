@@ -11,14 +11,18 @@ const state = {
     teamLoaded: false,
     activityLoaded: false,
     statsLoaded: false,
-    whalesLoaded: false
+    whalesLoaded: false,
+    leaderboardLoaded: false,
+    theme: 'light'
 };
 
 // === Initialization ===
 document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
     initTabs();
     loadTokenStats();
     loadWhales();
+    loadLeaderboard();
     loadNetworkActivity();
     generateSparkles();
 });
@@ -493,7 +497,98 @@ setInterval(() => {
 
 // === Keyboard shortcuts ===
 document.addEventListener('keydown', (e) => {
+    // Tab switching with 1/2/3
+    if (!e.target.closest('input, textarea')) {
+        if (e.key === '1') switchTab('command');
+        if (e.key === '2') switchTab('explorer');
+        if (e.key === '3') switchTab('twitter');
+    }
     if (e.key === 'Enter' && e.target.id === 'walletSearch') {
         searchWallet();
     }
 });
+
+// === Dark Mode ===
+function initTheme() {
+    const saved = localStorage.getItem('degen-theme');
+    if (saved === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        state.theme = 'dark';
+        const icon = document.getElementById('themeIcon');
+        if (icon) icon.textContent = '☀️';
+    }
+}
+
+function toggleTheme() {
+    const isDark = state.theme === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    state.theme = newTheme;
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('degen-theme', newTheme);
+
+    const icon = document.getElementById('themeIcon');
+    if (icon) {
+        icon.style.transform = 'rotate(360deg)';
+        setTimeout(() => {
+            icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+            icon.style.transform = 'rotate(0deg)';
+        }, 150);
+    }
+}
+
+// === Chart Timeframe ===
+function setChartTimeframe(btn) {
+    document.querySelectorAll('.chart-tf').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // DexScreener embed doesn't support timeframe param directly,
+    // but we can reload with a slightly different URL to force refresh
+    const iframe = document.getElementById('dexChart');
+    if (iframe) {
+        const theme = state.theme === 'dark' ? 'dark' : 'dark'; // DexScreener chart always dark
+        iframe.src = `https://dexscreener.com/base/0x4ed4e862860bed51a9570b96d89af5e1b0efefed?embed=1&theme=${theme}&trades=0&info=0&t=${Date.now()}`;
+    }
+}
+
+// === Leaderboard ===
+async function loadLeaderboard() {
+    const list = document.getElementById('leaderboardList');
+    if (!list) return;
+
+    try {
+        const resp = await fetch('/api/leaderboard');
+        const data = await resp.json();
+        state.leaderboardLoaded = true;
+
+        const holders = data.holders || [];
+        if (holders.length === 0) {
+            list.innerHTML = `
+                <div class="xray-empty">
+                    <div class="empty-icon">🏆</div>
+                    <div class="empty-desc">No leaderboard data yet</div>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = holders.map((h, i) => {
+            const medal = h.rank === 1 ? '🥇' : h.rank === 2 ? '🥈' : h.rank === 3 ? '🥉' : '';
+            const rankClass = h.rank <= 3 ? `rank-${h.rank}` : '';
+
+            return `
+                <div class="leaderboard-row ${rankClass}" style="animation-delay: ${i * 0.04}s">
+                    <div class="rank-badge">${medal || h.rank}</div>
+                    <div class="leaderboard-info">
+                        <div class="leaderboard-address">${h.address_short}</div>
+                    </div>
+                    <div class="leaderboard-balance">${h.total_formatted} DEGEN</div>
+                </div>`;
+        }).join('');
+
+    } catch (err) {
+        list.innerHTML = `
+            <div class="xray-empty">
+                <div class="empty-icon">⚠️</div>
+                <div class="empty-desc">Error loading leaderboard</div>
+            </div>`;
+    }
+}

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="DEGEN Command Center — Live whale tracking, token analytics, wallet X-ray, and Twitter pulse. Built for degens on Base.">
     <title>DEGEN Command Center 🎩</title>
-    <link rel="stylesheet" href="/static/style.css?v=4">
+    <link rel="stylesheet" href="/static/style.css?v=5">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎩</text></svg>">
 </head>
 <body>
@@ -22,9 +22,14 @@
                 <div class="header-subtitle">Command Center · Base Chain</div>
             </div>
         </div>
-        <div class="header-badge">
-            <span class="dot"></span>
-            <span>Live on Base</span>
+        <div class="header-actions">
+            <div class="header-badge">
+                <span class="dot"></span>
+                <span>Live on Base</span>
+            </div>
+            <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" title="Toggle dark/light mode">
+                <span class="theme-icon" id="themeIcon">🌙</span>
+            </button>
         </div>
     </header>
 
@@ -71,16 +76,38 @@
                 </div>
             </div>
 
-            <!-- Two Column Layout -->
-            <div class="command-layout">
+            <!-- Price Chart -->
+            <div class="chart-container" id="chartContainer">
+                <div class="panel-header">
+                    <h2 class="panel-title">📈 DEGEN / USD</h2>
+                    <div class="chart-timeframes">
+                        <button class="chart-tf active" data-tf="15" onclick="setChartTimeframe(this)">15m</button>
+                        <button class="chart-tf" data-tf="60" onclick="setChartTimeframe(this)">1H</button>
+                        <button class="chart-tf" data-tf="240" onclick="setChartTimeframe(this)">4H</button>
+                        <button class="chart-tf" data-tf="D" onclick="setChartTimeframe(this)">1D</button>
+                    </div>
+                </div>
+                <div class="chart-frame">
+                    <iframe
+                        id="dexChart"
+                        src="https://dexscreener.com/base/0x4ed4e862860bed51a9570b96d89af5e1b0efefed?embed=1&theme=dark&trades=0&info=0"
+                        frameborder="0"
+                        allowfullscreen
+                        style="width:100%;height:100%;border:0;"
+                    ></iframe>
+                </div>
+            </div>
 
-                <!-- Left: Whale Watch -->
+            <!-- Three Column Layout -->
+            <div class="command-grid">
+
+                <!-- Col 1: Whale Watch -->
                 <div class="command-panel">
                     <div class="panel-header">
                         <h2 class="panel-title">🐋 Whale Watch</h2>
                         <span class="panel-badge live-badge">LIVE</span>
                     </div>
-                    <div class="panel-desc">Big DEGEN transfers happening right now</div>
+                    <div class="panel-desc">Big DEGEN transfers happening now</div>
                     <div class="whale-list" id="whaleList">
                         <div class="loading-spinner" id="whaleLoading">
                             <div class="spinner"></div>
@@ -142,6 +169,21 @@
                     <div class="xray-empty" id="xrayEmpty">
                         <div class="empty-icon">🔍</div>
                         <div class="empty-desc">Paste any wallet to see their DEGEN stats, balance, and TX history</div>
+                    </div>
+                </div>
+
+                <!-- Col 3: Leaderboard -->
+                <div class="command-panel leaderboard-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">🏆 Top Holders</h2>
+                        <button class="panel-badge refresh-badge" onclick="loadLeaderboard()" title="Refresh">↻</button>
+                    </div>
+                    <div class="panel-desc">Biggest DEGEN wallets on Base</div>
+                    <div class="leaderboard-list" id="leaderboardList">
+                        <div class="loading-spinner" id="leaderboardLoading">
+                            <div class="spinner"></div>
+                            <span class="loading-text">Ranking holders...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -284,6 +326,6 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <script src="/static/app.js?v=4"></script>
+    <script src="/static/app.js?v=5"></script>
 </body>
 </html>
